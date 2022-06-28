@@ -8,7 +8,7 @@ const state={
 
 
 module.exports.connect = function(done){
-    const url ='mongodb://0.0.0.0:27017/'
+    const url =process.env.MONGOCLIENT;
     const dbname='parrotfashion'
 
 mongoClient.connect(url,(err,data)=>{

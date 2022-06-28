@@ -324,7 +324,8 @@ module.exports = {
   },
   getTotalRevenue: () => {
     return new Promise(async (resolve, reject) => {
-      totalRevenue = await db
+
+   let   totalRevenue = await db
         .get()
         .collection(collection.ORDER_COLLECTION)
         .aggregate([
@@ -339,8 +340,25 @@ module.exports = {
         ])
         .toArray();
 
-      resolve(totalRevenue[0].total);
+       if(totalRevenue[0]){
+        resolve(totalRevenue[0].total);
+       }else{
+        resolve()
+       }
+
+     
+         
+    
+
+      
+
+
+      
     });
+
+
+
+    
   },
   getCardSale: () => {
     return new Promise(async (resolve, reject) => {
@@ -485,8 +503,14 @@ getTotalRevenueByDate:(startDate,endDate)=>{
           },
         ])
         .toArray();
-      console.log(totalRevenue[0].total);
-      resolve(totalRevenue[0].total);
+
+if(totalRevenue[0]){  console.log(totalRevenue[0].total);
+  resolve(totalRevenue[0].total); }else{
+    resolve()
+  }
+     
+
+
     });
   },
   //------------------------add product pffer------------------------

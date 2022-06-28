@@ -36,15 +36,15 @@
                                 <td class="quantity__item">
 
 
-                                    <button class="cart-item-count"
-                                        style="border: none  ;background-color: rgba(0, 0, 255, 0);font-size: 20px"
+                                    <button class="cart-item-count btn btn-primary mr-2"
+                                        style="border: none; font-weight: bold ;font-size: 20px;height: 40; width:40 ;"
                                         onclick='changeQuantity("{{this._id}}","{{this.product._id}}","{{../user._id}}",-1 ) '>-</button>
 
 
 
                                     <span id="{{this.product._id}}"> {{this.quantity}} </span>
-                                    <button class="cart-item-count"
-                                        style="border: none  ;background-color: rgba(0, 0, 0, 0); font-size: 20px;"
+                                    <button class="cart-item-count btn btn-primary ml-2"
+                                        style=" border: none; font-size: 20px; font-weight: bold; height: 40;width:40 ; "
                                         onclick='changeQuantity("{{this._id}}","{{this.product._id}}","{{../user._id}}", 1 )'>+</button>
                                 </td>
                                 {{#if this.product.offer_status}}

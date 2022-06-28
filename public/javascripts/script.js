@@ -113,6 +113,9 @@ function addToCart(proId){
         //   console.log(response.status);
           let count =$('#cart-count').html()
           count=parseInt(count)+1;
+          swal("Poof! added to cart!", {
+            icon: "success",
+          })
           $('#cart-count').html(count)
         
       }

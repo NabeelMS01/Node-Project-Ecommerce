@@ -20,7 +20,7 @@ let options = {
 //   key_id: 'rzp_test_dvEiQE98PIBRAI',
 //   key_secret: 'RatXLbroi7okrk5DQHDQvwIh',
 // });
-
+ 
 const verifyLogin = async (req, res, next) => {
   if (req.session.loggedIn) {
     cartCount = await userHelper.getCartCount(req.session.user._id);
@@ -41,6 +41,8 @@ const loggedInCheck = (req, res, next) => {
 // -----------------Otp Verification------------------
 
 /* GET users listing. */
+
+
 router.get("/", async function (req, res, next) {
   let cartCount = 0;
   if (req.session.user) {
@@ -738,5 +740,11 @@ req.session.coupondata = null;
 
   }) 
 })
+
+
+
+
+
+
 
 module.exports = router;

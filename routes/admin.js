@@ -28,11 +28,13 @@ router.get("/", async (req, res) => {
   if (!req.session.admin) {
     res.redirect("/admin/login");
   } else {
+
+    
     let orderByday = await adminHelper.getSalesDay();
     let totalRevenue = await adminHelper.getTotalRevenue();
     let totalOrders = await adminHelper.getAllOrders();
 
-    console.log(orderByday[0]._id.day);
+
     let cardSale = await adminHelper.getCardSale();
     let paypal = await adminHelper.getPaypalSale();
     let codSale = await adminHelper.getCodSale();
@@ -50,6 +52,9 @@ router.get("/", async (req, res) => {
     });
   }
 
+
+
+  
   // res.render('admin/login',{admin:true})
 });
 
@@ -126,7 +131,7 @@ router.get("/all-users", varifyLogin, (req, res) => {
   });
 });
 
-router.get("/block-user/:id", (req, res) => {
+router.get("/block-user/:id",varifyLogin, (req, res) => {
   userId = req.params.id;
   adminHelper.blockUser(userId).then((response) => {
     res.json({ status: true });
@@ -206,7 +211,7 @@ router.get("/view-product/:id", varifyLogin, (req, res) => {
 
 // ----------------edit - product ----------------
 
-router.get("/edit-product/:id", async (req, res) => {
+router.get("/edit-product/:id",varifyLogin, async (req, res) => {
   //   var id= req.params.id
 
   //   adminHelper.editProduct(id).then(
@@ -252,7 +257,7 @@ router.post("/edit-product/:id", upload.array("multiImages"), (req, res) => {
     );
 });
 
-router.get("/delete-product/:id", (req, res) => {
+router.get("/delete-product/:id",varifyLogin, (req, res) => {
   id = req.params.id;
   adminHelper.deleteProduct(id).then((response) => {
     res.json({ status: true });
@@ -260,7 +265,7 @@ router.get("/delete-product/:id", (req, res) => {
 });
 //-------------------deactivate/activate product---------------
 
-router.get("/deactivate-product/:id", (req, res) => {
+router.get("/deactivate-product/:id",varifyLogin, (req, res) => {
   id = req.params.id;
   adminHelper.deactivateProduct(id).then((response) => {
     res.redirect("/admin/all-products");
@@ -275,7 +280,7 @@ router.get("/activate-product/:id", (req, res) => {
 
 // ----------------Category Management----------------
 
-router.get("/view-category", (req, res) => {
+router.get("/view-category",varifyLogin, (req, res) => {
   adminHelper.getAllCategory().then(async (categories) => {
     let subCategory = await adminHelper.getAllSubcategory();
     console.log(subCategory);
@@ -289,7 +294,7 @@ router.get("/view-category", (req, res) => {
 });
 //---------------add-category------------------------
 
-router.get("/add-category", async (req, res) => {
+router.get("/add-category",varifyLogin, async (req, res) => {
   let category = await adminHelper.getAllCategory();
 
   res.render("admin/pages/categoryManagement/add-category", {
@@ -311,7 +316,7 @@ router.post("/add-subcategory", (req, res) => {
 });
 
 //---------------edit-category------------------------
-router.get("/edit-subCategory/:id", async (req, res) => {
+router.get("/edit-subCategory/:id",varifyLogin, async (req, res) => {
   console.log("******************");
   console.log(req.params.id);
   console.log("******************");
@@ -337,7 +342,7 @@ router.post("/edit-subCategory/:id", async (req, res) => {
   });
 });
 
-router.get("/edit-category/:id", (req, res) => {
+router.get("/edit-category/:id",varifyLogin, (req, res) => {
   adminHelper.getCategory(req.params.id).then((category) => {
     res.render("admin/pages/categoryManagement/edit-category", {
       admin: true,
@@ -355,7 +360,7 @@ router.post("/edit-category/:id", (req, res) => {
   });
 });
 
-router.get("/delete-category/:id", (req, res) => {
+router.get("/delete-category/:id",varifyLogin, (req, res) => {
   var id = req.params.id;
   console.log("******************");
   console.log(req.body);
@@ -364,11 +369,11 @@ router.get("/delete-category/:id", (req, res) => {
   });
 });
 
-router.get("/offer-management", (req, res) => {
+router.get("/offer-management",varifyLogin, (req, res) => {
   res.render("admin/pages/offerManagement/manageOffer", { admin: true });
 });
 
-router.get("/product-offer", async (req, res) => {
+router.get("/product-offer",varifyLogin, async (req, res) => {
   let products = await adminHelper.getAllProduct();
 
   res.render("admin/pages/offerManagement/productOffer", {
@@ -377,7 +382,7 @@ router.get("/product-offer", async (req, res) => {
   });
 });
 
-router.get("/add-product-offer/:id", async (req, res) => {
+router.get("/add-product-offer/:id",varifyLogin, async (req, res) => {
   let product = await adminHelper.getProductDetails(req.params.id);
 
   res.render("admin/pages/offerManagement/add-product-offer", {
@@ -386,7 +391,7 @@ router.get("/add-product-offer/:id", async (req, res) => {
   });
 });
 
-router.post("/add-product-offer/:id", async (req, res) => {
+router.post("/add-product-offer/:id",varifyLogin, async (req, res) => {
   let product = await userHelper.getProductDetails(req.params.id);
   await adminHelper
     .addProductOffer(req.params.id, req.body, product)
@@ -395,13 +400,13 @@ router.post("/add-product-offer/:id", async (req, res) => {
       res.json({ offerStatus: true });
     });
 });
-router.get("/remove-product-offer/:id", async (req, res) => {
+router.get("/remove-product-offer/:id",varifyLogin, async (req, res) => {
   await adminHelper.removeProductOffer(req.params.id).then((resolve) => {
     res.redirect("/admin/product-offer");
   });
 });
 
-router.get("/category-offer", async (req, res) => {
+router.get("/category-offer",varifyLogin, async (req, res) => {
   let category = await adminHelper.getAllCategory();
 
   res.render("admin/pages/offerManagement/categoryOffer", {
@@ -410,7 +415,7 @@ router.get("/category-offer", async (req, res) => {
   });
 });
 
-router.get("/add-category-offer/:id", async (req, res) => {
+router.get("/add-category-offer/:id",varifyLogin, async (req, res) => {
   let category = await adminHelper.getCategory(req.params.id);
 
   res.render("admin/pages/offerManagement/add-category-offer", {
@@ -432,7 +437,7 @@ router.post("/add-category-offer/:id", async (req, res) => {
     });
 });
 
-router.get("/remove-category-offer/:id", async (req, res) => {
+router.get("/remove-category-offer/:id",varifyLogin, async (req, res) => {
   console.log(req.params.id);
   await adminHelper.removeCategoryOffer(req.params.id).then((resolve) => {
     res.redirect("/admin/category-offer");
@@ -441,7 +446,7 @@ router.get("/remove-category-offer/:id", async (req, res) => {
 });
 //-------------coupon management--------------
 
-router.get("/view-coupon", async (req, res) => {
+router.get("/view-coupon",varifyLogin, async (req, res) => {
   let coupons = await adminHelper.getAllCoupons();
 
   res.render("admin/pages/offerManagement/viewCoupon", {
@@ -450,14 +455,14 @@ router.get("/view-coupon", async (req, res) => {
   });
 });
 
-router.post("/add-coupon", (req, res) => {
+router.post("/add-coupon",varifyLogin, (req, res) => {
   console.log(req.body);
   adminHelper.addCouponCode(req.body).then((response) => {
     console.log("here");
     res.json({ status: true });
   });
 });
-router.get("/remove-code/:id", (req, res) => {
+router.get("/remove-code/:id",varifyLogin, (req, res) => {
   console.log(req.body);
 
   adminHelper.removeCouponCode(req.params.id).then((response) => {
@@ -467,7 +472,7 @@ router.get("/remove-code/:id", (req, res) => {
 
 //-----------------sales report--------------
 
-router.get("/sales-report", async (req, res) => {    
+router.get("/sales-report",varifyLogin, async (req, res) => {    
   let orders = await adminHelper.getAllOrders();
   console.log(orders);
 let totalAmount=await adminHelper.getTotalRevenue()
@@ -485,7 +490,7 @@ let totalAmount=await adminHelper.getTotalRevenueByDate(req.body.from_date,req.b
 
 //------------------------banner management-------------------
 
-router.get("/add-banners", async (req, res) => {
+router.get("/add-banners",varifyLogin, async (req, res) => {
   let subCategory = await adminHelper.getAllSubcategory();
 
   res.render("admin/pages/bannerManagement/addBanner", {
@@ -514,7 +519,7 @@ router.post("/add-banners", upload.array("bannerimage"), async (req, res) => {
   });
 });
 
-router.get("/view-banners/", async (req, res) => {
+router.get("/view-banners/",varifyLogin, async (req, res) => {
   let banners = await userHelper.getAllBanners();
 
   res.render("admin/pages/bannerManagement/viewBanner", {
@@ -526,12 +531,12 @@ router.get("/view-banners/", async (req, res) => {
   req.session.bannerSuccess = null;
 });
 
-router.get("/delete-banner/:id", async (req, res) => {
+router.get("/delete-banner/:id",varifyLogin, async (req, res) => {
   await adminHelper.deleteBanner(req.params.id).then((response) => {
     res.json({ status: true });
   });
 });
-router.get("/edit-banner/:id", async (req, res) => {
+router.get("/edit-banner/:id",varifyLogin, async (req, res) => {
   let subCategory = await adminHelper.getAllSubcategory();
   let banner = await adminHelper.getBannerDetails(req.params.id);
   console.log(banner);
@@ -567,12 +572,12 @@ router.post(
   }
 );
 
-router.get("/deactivate-banner/:id", async (req, res) => {
+router.get("/deactivate-banner/:id",varifyLogin, async (req, res) => {
   await adminHelper.deactivateBanner(req.params.id).then((response) => {
     res.json({ status: true });
   });
 });
-router.get("/activate-banner/:id", async (req, res) => {
+router.get("/activate-banner/:id",varifyLogin, async (req, res) => {
   await adminHelper.activateBanner(req.params.id).then((response) => {
     res.json({ status: true });
   });
@@ -581,7 +586,7 @@ router.get("/activate-banner/:id", async (req, res) => {
 //--------------------collection card management --------------------
 
 
-router.get("/add-collectionCard", async (req, res) => {
+router.get("/add-collectionCard",varifyLogin, async (req, res) => {
   let subCategory = await adminHelper.getAllSubcategory();
 
   res.render("admin/pages/collectionCardManagement/addCollectionCard", {
@@ -615,7 +620,7 @@ router.post(
   }
 );
 
-router.get('/view-collectionCard',async(req,res)=>{
+router.get('/view-collectionCard',varifyLogin,async(req,res)=>{
   let cardCollection =await adminHelper.getCollectionCards()
 
 res.render('admin/pages/collectionCardManagement/viewCollectionCard',{admin:true,cardCollection,bannerSuccess:req.session.bannerSuccess})
@@ -624,19 +629,19 @@ res.render('admin/pages/collectionCardManagement/viewCollectionCard',{admin:true
 
 
 
-router.get("/deactivate-collectionCard/:id", async (req, res) => {
+router.get("/deactivate-collectionCard/:id",varifyLogin, async (req, res) => {
   await adminHelper.deactivatecollectionCard(req.params.id).then((response) => {
     res.json({ status: true });
   });
 });
-router.get("/activate-collectionCard/:id", async (req, res) => {
+router.get("/activate-collectionCard/:id",varifyLogin, async (req, res) => {
   await adminHelper.activatecollectionCard(req.params.id).then((response) => {
     res.json({ status: true });
   });
 });
 
 
-router.get('/edit-collectionCard/:id',async(req,res)=>{
+router.get('/edit-collectionCard/:id',varifyLogin,async(req,res)=>{
 
   let cardCollection= await adminHelper.getCollectionCardDetails(req.params.id)
 
@@ -666,7 +671,7 @@ router.post("/edit-collectionCard/:id",  upload.array("cardimage"),async(req,res
 })
 
 
-router.get("/delete-collectionCard/:id", async (req, res) => {
+router.get("/delete-collectionCard/:id",varifyLogin, async (req, res) => {
    await adminHelper.deleteCollectionCard(req.params.id).then((response) => {
     res.json({ status: true });
 
@@ -675,5 +680,13 @@ router.get("/delete-collectionCard/:id", async (req, res) => {
   });
 });
 
+
+
+
+
+router.get("*",(req,res)=>{
+  res.render('admin/pages/404',{admin:true})
+  
+  });
 
 module.exports = router;

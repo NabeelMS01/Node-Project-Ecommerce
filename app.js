@@ -58,6 +58,14 @@ app.use((req, res, next) => {
 
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
+
+
+app.get("*",(req,res)=>{
+  res.render('user/404',{userUi:true, logedIn: req.session.loggedIn, category: req.session.category,
+    cartCount: req.session.cartCount,})
+  
+  });
+
 app.use(
   express.static(path.join(__dirname, "node_modules/bootstrap/dist/css"))
 );
