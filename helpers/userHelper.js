@@ -13,12 +13,15 @@ const { Hmac } = require("node:crypto");
 const paypal = require("paypal-rest-sdk");
 const { Console } = require("node:console");
 const adminHelper = require("./adminHelper");
+const paypalconfig = require("../config/paypal");
+const { Resolver, resolveCaa } = require("node:dns");
+
 paypal.configure({
   mode: "sandbox", //sandbox or live
   client_id:
-    process.env.CLIENTID,
+    "AV05776SkKsp-OQsecJGn2PfDM0INFc0mJkZhiZnN2G0vrIqPsaW2nQVhUSE47oDslP69hu_502AeoBJ",
   client_secret:
-  process.env.CLIENTSECRET,
+    "EOU_Zb_8gbPFX-X-JANSlrm_8YcdtB5Ph57kSF_CEE1ULdTfWp69Bnqp6C_i06oGemWLy8jFwEF0lkIj",
 });
 
 var instance = new Razorpay({
@@ -366,7 +369,6 @@ module.exports = {
   //------------------get product details --------------------
 
   getProductDetails: (id) => {
-    console.log(id);
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collection.PRODUCT_COLLECTION)
@@ -712,7 +714,7 @@ module.exports = {
         });
     });
   },
-  placeOrderOnline: (order, products, total, coupon,userId) => {
+  placeOrderOnline: (order, products, total, coupon, userId) => {
     return new Promise(async (resolve, reject) => {
       console.log(total);
 
@@ -744,7 +746,7 @@ module.exports = {
           db.get()
             .collection(collection.CART_COLLECTION)
             .deleteOne({ user: ObjectId(order.userId) });
-          
+
           if (coupon) {
             await db
               .get()
@@ -783,16 +785,22 @@ module.exports = {
 
     console.log("*********************+6++");
     return new Promise(async (resolve, reject) => {
-      let products = await db
-        .get()
-        .collection(collection.PRODUCT_COLLECTION)
-        .find({ sub_category_id: ObjectId(id) })
-        .toArray();
+      let products;
+      try {
+        products = await db
+          .get()
+          .collection(collection.PRODUCT_COLLECTION)
+          .find({ sub_category_id: ObjectId(id) })
+          .toArray();
+        resolve(products);
+      } catch (err) {
+        console.log(err);
 
-      console.log(products);
+        console.log(products);
+        console.log("*********************+6++");
 
-      console.log("*********************+6++");
-      resolve(products);
+        resolve(products);
+      }
     });
   },
 
@@ -840,7 +848,8 @@ module.exports = {
 
   generatePaypal: (total, products, order) => {
     console.log(total);
-
+    console.log(products);
+    console.log(order);
     return new Promise(async (resolve, reject) => {
       let create_payment_json = {
         intent: "sale",
@@ -872,7 +881,7 @@ module.exports = {
           },
         ],
       };
-
+      console.log(create_payment_json);
       paypal.payment.create(create_payment_json, function (error, payment) {
         if (error) {
           throw error;
@@ -1112,4 +1121,113 @@ module.exports = {
         });
     });
   },
+
+  wishlistCheck: (user, product) => {
+    return new Promise(async (resolve, reject) => {
+      let wishlist = await db
+        .get()
+        .collection(collection.WISHLIST_COLLECTION)
+        .aggregate([
+          {
+            $match: {
+              userId: ObjectId(user._id),
+            },
+          },
+          {
+            $match: {
+              product: ObjectId(product._id),
+            },
+          },
+        ])
+        .toArray();
+
+      let wishlistData = false;
+
+      if (wishlist[0]) {
+        wishlistData = true;
+        resolve({ datastatus: true });
+      } else if (wishlist[0] == undefined) {
+        console.log(wishlist);
+        console.log("11111111111");
+        resolve({ datastatus: false });
+      } else {
+        console.log(wishlist);
+        console.log("22222222222");
+        resolve({ datastatus: false });
+      }
+    });
+  },
+
+  addtoWishlist: (user, id) => {
+    return new Promise(async (resolve, reject) => {
+      let wishlist = {};
+
+      wishlist.userId = ObjectId(user._id);
+      wishlist.product = ObjectId(id);
+
+      await db
+        .get()
+        .collection(collection.WISHLIST_COLLECTION)
+        .insertOne(wishlist)
+        .then((response) => {
+          resolve({ addedtowishlist: true });
+        });
+    });
+  },
+
+  getwishlist: (user) => {
+    return new Promise(async (resolve, reject) => {
+      let wishlist = await db
+        .get()
+        .collection(collection.WISHLIST_COLLECTION)
+        .aggregate([
+          {
+            $match: {
+              userId: ObjectId(user._id),
+            },
+          },
+          {
+            $lookup: {
+              from: "products",
+              localField: "product",
+              foreignField: "_id",
+              as: "product",
+            },
+          },
+          {
+            $unwind: {
+              path: "$product",
+
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              product_id: "$product._id",
+              product_name: "$product.name",
+              product_price: "$product.price",
+              product_offer_price: "$product.offer_price",
+              product_offer_status: "$product.offer_status",
+              product_image: "$product.images",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ])
+        .toArray();
+
+      resolve(wishlist);
+    });
+  },
+
+  removewishlist:(id)=>{
+    return new Promise(async(resolve,reject)=>{
+      await db.get().collection(collection.WISHLIST_COLLECTION).deleteOne({_id:ObjectId(id)}).then((response)=>{
+
+        resolve()
+      })
+    })
+  }
+
+
+
 };

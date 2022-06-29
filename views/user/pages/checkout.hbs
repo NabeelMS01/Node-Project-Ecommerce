@@ -1,5 +1,3 @@
-
-
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
     <div class="container">
@@ -18,7 +16,8 @@
     </div>
 </section>
 <!-- Breadcrumb Section End -->
-<button  id="selectad" type="button" class="primary-btn  ml-5 mt-5"   data-toggle="modal" data-target=".bd-example-modal-lg">Select Another
+<button id="selectad" type="button" class="primary-btn  ml-5 mt-5" data-toggle="modal"
+    data-target=".bd-example-modal-lg">Select Another
     address</button>
 <!-- Checkout Section Begin -->
 <section class="checkout spad">
@@ -105,7 +104,7 @@
                                     <span class="checkmark"></span>
                                 </label>
                             </div>
-                           <div class="checkout__input__checkbox">
+                            <div class="checkout__input__checkbox">
                                 <label>
                                     Paypal
                                     <input name="payment_method" type="radio" value="paypal">
@@ -127,8 +126,8 @@
 <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        
-{{#if addresses}}
+
+        {{#if addresses}}
         <div class="modal-content">
 
 
@@ -163,29 +162,31 @@
 
 
             </form>
- <h5 class="mb-5 ml-5"> Would you like to add an address? please  <a class="text-primary" href="/account-addresses"> click here </a></h5>
+            <h5 class="mb-5 ml-5"> Would you like to add an address? please <a class="text-primary"
+                    href="/account-addresses"> click here </a></h5>
 
         </div>
-{{else}}
+        {{else}}
 
 
-<div class="modal-content" >
+        <div class="modal-content">
 
 
             <div class="m-auto">
                 <h3>Select an address</h3>
             </div>
 
-  <div class="m-auto" style=" padding-top: 50px; height: 200px;" >
-                <h5>You do not have any address saved. Would you like to add an address? please  <a class="text-primary" href="/account-addresses"> click here </a></h5>
+            <div class="m-auto" style=" padding-top: 50px; height: 200px;">
+                <h5>You do not have any address saved. Would you like to add an address? please <a class="text-primary"
+                        href="/account-addresses"> click here </a></h5>
             </div>
-           
+
 
 
         </div>
 
 
-{{/if}}
+        {{/if}}
 
 
     </div>
@@ -215,144 +216,144 @@
 
 
 
-    
-    $("#checkout-form").submit(function(e) {
+
+    $("#checkout-form").submit(function (e) {
         console.log(e)
-     e.preventDefault()  // prevent actual form submit
-  
-  //get submit url [replace url here if desired]
-    $.ajax({
-           url: '/place-order',
-                method: 'post',
-                data: $('#checkout-form').serialize(),
-         success: function(response){
+        e.preventDefault()  // prevent actual form submit
+
+        //get submit url [replace url here if desired]
+        $.ajax({
+            url: '/place-order',
+            method: 'post',
+            data: $('#checkout-form').serialize(),
+            success: function (response) {
 
 
-            
-                
-       
-           if(response.codsuccess==true){
-                  swal("Poof! order placed", {
-                    icon: "success",
-                    buttons:true,
 
-                  }).then(()=>{
-            
-                     location.href='/'
-                  }
-                  );
-            }else
-             if(response.paymentResponse){
 
-                
-                 razorpayPayment(response.paymentResponse,response.userData)
-           
-            }else
-                 {
-              console.log(response)
-                
-                paypalPayment(response, response.body)
-           
+
+                if (response.codsuccess == true) {
+                    swal("Poof! order placed", {
+                        icon: "success",
+                        buttons: true,
+
+                    }).then(() => {
+
+                        location.href = '/'
+                    }
+                    );
+                } else
+                    if (response.paymentResponse) {
+
+
+                        razorpayPayment(response.paymentResponse, response.userData)
+
+                    } else {
+                        console.log(response)
+
+                        paypalPayment(response, response.body)
+
+                    }
+
+
+
             }
-           
-
-
-         }
+        });
     });
-});
 
- function paypalPayment(data, body) {
+    function paypalPayment(data, body) {
 
-    console.log(data.response.links)
-    for (let i = 0; i < data.response.links.length; i++) {
-      if (data.response.links[i].rel === 'approval_url') {
-        // console.log(('approval_url'))
-        window.location.href = (data.response.links[i].href);
-        // let link=(data.links[i].href);
-      }
+        console.log(data.response.links)
+        for (let i = 0; i < data.response.links.length; i++) {
+            if (data.response.links[i].rel === 'approval_url') {
+                // console.log(('approval_url'))
+                window.location.href = (data.response.links[i].href);
+                // let link=(data.links[i].href);
+            }
+        }
     }
-  }
 
-function razorpayPayment(order,userData){
- 
+    function razorpayPayment(order, userData) {
 
 
-    console.log(order.amount)
-       console.log('......................................')
-    var options = {
-    "key": "rzp_test_r82SUG9YhhYa4M", // Enter the Key ID generated from the Dashboard
-    "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-    "currency": "INR",
-    "name": "Parrot Fashion",
-    "description": "Test Transaction",
-    "image": "./img/logo.png",
-    "order_id": order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-    "handler": function (response){
-        //alert(response.razorpay_payment_id);
-      //  alert(response.razorpay_order_id);
-      //  alert(response.razorpay_signature)
-        verifyPayment(response,order)
-    },
-    "prefill": {
-        "name": userData.name,
-        "email":userData.email,
-        "contact": userData.phone,
-    },
-    "notes": {
-        "address": "Parrot fashion Corporate Office"
-    },
-    "theme": {
-        "color": "#3399cc"
+
+        console.log(order.amount)
+        console.log('......................................')
+        var options = {
+            "key": "rzp_test_r82SUG9YhhYa4M", // Enter the Key ID generated from the Dashboard
+            "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+            "currency": "INR",
+            "name": "Parrot Fashion",
+            "description": "Test Transaction",
+            "image": "./img/logo.png",
+            "order_id": order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+            "handler": function (response) {
+                //alert(response.razorpay_payment_id);
+                //  alert(response.razorpay_order_id);
+                //  alert(response.razorpay_signature)
+                verifyPayment(response, order)
+            },
+            "prefill": {
+                "name": userData.name,
+                "email": userData.email,
+                "contact": userData.phone,
+            },
+            "notes": {
+                "address": "Parrot fashion Corporate Office"
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+
     }
-};
-var rzp1 = new Razorpay(options);
- rzp1.open();
 
-}
+    function verifyPayment(payment, order,) {
 
- function verifyPayment(payment,order,){
+        $.ajax({
+            method: "POST",
+            url: '/verify-payment',
+            data: {
+                payment,
+                order,
+            },
+            success: (response) => {
 
-    $.ajax({
-        method:"POST",
-        url:'/verify-payment',
-        data:{payment,
-        order,
-       },
-       success:(response)=>{
-         
-     if(response.paymentstatus){
+                if (response.paymentstatus) {
 
-        swal("Poof! order placed", {
-                    icon: "success",
-                    buttons:true,
+                    swal("Poof! order placed", {
+                        icon: "success",
+                        buttons: true,
 
-                  }).then(()=>{
-            
-                     location.href='/'
-                  }
-                  );
+                    }).then(() => {
+
+                        location.href = '/orders'
+                    }
+                    );
 
 
-     }else if(!response.paymentstatus){
+                } else if (!response.paymentstatus) {
 
-           swal("Poof! order failed", {
-                    icon: "warning",
-                    buttons:true,
+                    swal("Poof! order failed", {
+                        icon: "warning",
+                        buttons: true,
 
-                  }).then(()=>{
-            
-                     location.href='/cart'
-                  }
-                  );
-     }
+                    }).then(() => {
+
+                        location.href = '/cart'
+                    }
+                    );
+                }
 
 
 
-       }
-        
-    })
+            }
 
- }
+        })
+
+    }
 
 
 

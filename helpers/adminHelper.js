@@ -84,13 +84,24 @@ module.exports = {
   getProductDetails: (id) => {
     console.log(id);
     return new Promise((resolve, reject) => {
-      db.get()
-        .collection(collection.PRODUCT_COLLECTION)
-        .findOne({ _id: ObjectId(id) })
-        .then((data) => {
-          resolve(data);
-        });
+try{    
+   db.get()
+  .collection(collection.PRODUCT_COLLECTION)
+  .findOne({ _id: ObjectId(id) })
+  .then((data) => {
+    console.log(data);
+    resolve(data);
+
+
+  });      }catch(err){
+console.log("here is the err");
+  resolve()
+  }
+    
     });
+
+
+
   },
 
   //-----------------edit product -------------------------

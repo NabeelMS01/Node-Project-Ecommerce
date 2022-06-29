@@ -10,6 +10,7 @@ const upload = require("../middlewere/multer");
 const client = require("twilio")(config.accountSID, config.authToken);
 
 let rn = require("random-number");
+const { Db } = require("mongodb");
 let options = {
   min: 10000000,
   max: 99999999,
@@ -20,7 +21,7 @@ let options = {
 //   key_id: 'rzp_test_dvEiQE98PIBRAI',
 //   key_secret: 'RatXLbroi7okrk5DQHDQvwIh',
 // });
- 
+
 const verifyLogin = async (req, res, next) => {
   if (req.session.loggedIn) {
     cartCount = await userHelper.getCartCount(req.session.user._id);
@@ -41,7 +42,6 @@ const loggedInCheck = (req, res, next) => {
 // -----------------Otp Verification------------------
 
 /* GET users listing. */
-
 
 router.get("/", async function (req, res, next) {
   let cartCount = 0;
@@ -70,7 +70,7 @@ router.get("/", async function (req, res, next) {
       });
     });
   } catch (err) {
-    res.render("errors/error404");
+    res.redirect("/notfound");
   }
 });
 
@@ -241,12 +241,18 @@ router.get("/product-details/:id", (req, res) => {
 
   adminHelper.getProductDetails(id).then((product) => {
     // adminHelper.getAllCategory().then((category) => {
+    if (!product) {
+      res.redirect("/productnotfound");
+    }
+
     res.render("user/pages/product_details", {
       userUi: true,
+      logedIn: req.session.loggedIn,
       product,
       category: req.session.category,
       cartCount: req.session.cartCount,
     });
+
     // });
   });
 });
@@ -385,19 +391,18 @@ router.post("/place-order", verifyLogin, async (req, res) => {
   if (req.body.payment_method == "cod") {
     totalPrice = totalPrice * 100;
     await userHelper
-      .placeOrder(req.body, products, totalPrice,req.session.user._id,req.session.appliedCoupon)
+      .placeOrder(
+        req.body,
+        products,
+        totalPrice,
+        req.session.user._id,
+        req.session.appliedCoupon
+      )
       .then((orderId) => {
         res.json({ codsuccess: true });
         req.session.coupondata = null;
-   req.session.couponmsg=null
+        req.session.couponmsg = null;
       });
-
-
-
-
-
-
-
   } else if (req.body.payment_method == "razorpay") {
     totalPrice = totalPrice * 100;
     // await userHelper.placeOrderOnline(req.body, products, totalPrice).then(async(orderId) => {
@@ -408,9 +413,8 @@ router.post("/place-order", verifyLogin, async (req, res) => {
       .then((paymentResponse) => {
         // console.log(userData);
         req.session.coupondata = null;
-        req.session.couponmsg=null
+        req.session.couponmsg = null;
         res.json({ paymentResponse: paymentResponse, userData });
-        
       });
 
     //   res.json({ payment_status: true });
@@ -423,9 +427,8 @@ router.post("/place-order", verifyLogin, async (req, res) => {
       .then((response) => {
         response.paypal = true;
         req.session.coupondata = null;
-        req.session.couponmsg=null
+        req.session.couponmsg = null;
         res.json({ response });
-     
       });
   }
 });
@@ -439,9 +442,17 @@ router.get("/success/:id", async (req, res) => {
   let products = await userHelper.getCartProducts(req.session.userData._id);
 
   userHelper.verifypaypal(payerId, paymentId, total).then((response) => {
-    userHelper.placeOrderOnline(data, products, total,req.session.appliedCoupon,req.session.user._id).then((response) => {
-      res.redirect("/orders");
-    });
+    userHelper
+      .placeOrderOnline(
+        data,
+        products,
+        total,
+        req.session.appliedCoupon,
+        req.session.user._id
+      )
+      .then((response) => {
+        res.redirect("/orders");
+      });
   });
 });
 
@@ -456,7 +467,12 @@ router.post("/verify-payment", async (req, res) => {
     .then(async () => {
       console.log("payment Success,");
       await userHelper
-        .placeOrderOnline(req.session.orderdata, products, totalPrice,req.session.appliedCoupon)
+        .placeOrderOnline(
+          req.session.orderdata,
+          products,
+          totalPrice,
+          req.session.appliedCoupon
+        )
         .then(() => {
           console.log("payment Success, order placed");
           res.json({ paymentstatus: true });
@@ -678,16 +694,24 @@ router.get("/ship-order/:id", (req, res) => {
 });
 
 router.get("/collection/:id", async (req, res) => {
-  let products = await userHelper.getProductByCollection(req.params.id);
+  try {
+    let products = await userHelper.getProductByCollection(req.params.id);
+    console.log(products[0]);
+    if (!products || products[0] == null) {
+      res.redirect("/productnotfound");
+    }
 
-  res.render("user/pages/shop", {
-    userUi: true,
-    category: req.session.category,
-    cartCount: req.session.cartCount,
-    logedIn: req.session.loggedIn,
-    user: req.session.user,
-    products: products,
-  });
+    res.render("user/pages/shop", {
+      userUi: true,
+      category: req.session.category,
+      cartCount: req.session.cartCount,
+      logedIn: req.session.loggedIn,
+      user: req.session.user,
+      products: products,
+    });
+  } catch (err) {
+    res.redirect("/productnotfound");
+  }
 });
 
 router.post("/apply-coupon", async (req, res) => {
@@ -713,15 +737,12 @@ router.post("/apply-coupon", async (req, res) => {
           .addcoupontocart(coupon, req.session.user._id)
           .then(async () => {
             let cart = await userHelper.getCartByUser(req.session.user._id);
-              req.session.appliedCoupon=coupon
+            req.session.appliedCoupon = coupon;
             req.session.couponmsg = `coupon applied !! ₹ ${cart.coupon_offer} offer added`;
             res.json({ coupon, totalAmount, cart });
           });
-      }else{
-
-   res.json({couponused:true})
-
-
+      } else {
+        res.json({ couponused: true });
       }
     }
   } catch (err) {
@@ -729,21 +750,73 @@ router.post("/apply-coupon", async (req, res) => {
   }
 });
 
-router.get('/removecoupon/:id',async(req,res)=>{
+router.get("/removecoupon/:id", async (req, res) => {
+  await userHelper.removeCouponFromCart(req.params.id).then((response) => {
+    req.session.coupondata = null;
+    req.session.couponmsg = null;
+    req.session.appliedCoupon = null;
+    res.json({ removed: true });
+  });
+});
 
-  await userHelper.removeCouponFromCart(req.params.id).then((response)=>{
-req.session.coupondata = null;
-   req.session.couponmsg=null
-   req.session.appliedCoupon=null
-    res.json({removed:true})
+router.get("/add-to-wishlist/:id", async (req, res) => {
+  if (!req.session.user) {
+    res.json({ userloggedin: false });
+  }
+
+  let product = await userHelper.getProductDetails(req.params.id);
+
+  let wishlistCheck = await userHelper.wishlistCheck(req.session.user, product);
+  console.log(wishlistCheck.datastatus);
+  if (wishlistCheck.datastatus) {
+    res.json({ wishlistData: true });
+  } else {
+    await userHelper
+      .addtoWishlist(req.session.user, req.params.id)
+      .then((response) => {
+        res.json({ addedtowishlist: true });
+      });
+  }
+  console.log(req.params.id);
+});
 
 
-  }) 
+
+//-------------wish list ---------------------
+
+
+
+router.get('/wishlist',verifyLogin, async(req,res)=>{
+
+let wishlist= await userHelper.getwishlist(req.session.user)
+
+res.render('user/pages/wishlist',{
+  userUi:true,
+   logedIn: req.session.loggedIn,
+    category: req.session.category,
+  cartCount: req.session.cartCount,
+ products:wishlist
 })
 
 
+console.log(wishlist);
 
 
+
+
+})
+
+
+router.get("/removewishlist/:id",async(req,res)=>{
+
+  
+ await userHelper.removewishlist(req.params.id).then((response)=>{
+    res.json({proremoved:true})
+
+ })
+
+
+})
 
 
 

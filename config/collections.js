@@ -8,5 +8,6 @@ module.exports = {
   ADDRESS_COLLECTION:"address",
   COUPON_COLLECTION:"coupons",
   BANNER_COLLECTION:"banners",
-  CARD_SUB_CATEGORY_COLLECTION:"sub_category_card"
+  CARD_SUB_CATEGORY_COLLECTION:"sub_category_card",
+  WISHLIST_COLLECTION:"wishlist"
 };

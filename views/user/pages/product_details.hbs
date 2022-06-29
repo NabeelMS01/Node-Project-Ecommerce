@@ -155,7 +155,7 @@
                <div onclick="addToCart('{{product._id}}')" >       <a  style="color: white; cursor: pointer;"  class="primary-btn">add to cart</a>    </div>            
                         </div>
                         <div class="product__details__btns__option">
-                            <a href="#"><i class="fa fa-heart"></i> add to wishlist</a>
+                            <a style="cursor: pointer;" onclick="addtoWishlist('{{product._id}}')" ><i class="fa fa-heart"></i> add to wishlist</a>
                        
                         </div>
                         <div class="product__details__last__option">
@@ -193,6 +193,54 @@
 <!-- Shop Details Section End -->
 
 <script>
+function addtoWishlist(proId){
+
+     $.ajax(
+                {
+                    url: `/add-to-wishlist/${proId}`,
+                    data: {
+                      product: proId,
+                       
+                    },
+                    method: "GET",
+                    success: (response) => {
+          //    if(!response.userloggedin){
+     //   location.href='/login'
+
+            //  }  
+               console.log( response )
+  if(response.addedtowishlist){
+                     console.log( response )
+
+             swal("Poof! Product added to wishlist!", {
+                  icon: "success",
+                   timer: 1200,
+                   buttons:false,
+                  })
+                               
+                        }
+
+
+   if(response.wishlistData==true){
+   
+         swal("Poof! Product already in wishlist!", {
+                  icon: false,
+                  buttons:false,
+                   timer: 1500,
+                  })
+
+          
+}
+
+          
+                   
+    
+                    }
+                }
+            )
+
+}
+
 
     function imagezoom(imgId) {
         let img = document.getElementById(imgId) ;
