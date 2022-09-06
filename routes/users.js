@@ -66,7 +66,9 @@ router.get("/", async function (req, res, next) {
           cartCount: req.session.cartCount,
           banners,
           CollectionCard,
-        });
+        }).catch(error){
+        console.log(error)
+        };
       });
     });
   } catch (err) {
